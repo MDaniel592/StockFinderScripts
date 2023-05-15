@@ -1,0 +1,5 @@
+{
+    "python.formatting.blackArgs": ["--line-length","160"],
+    "python.formatting.provider": "black",
+    "editor.codeActionsOnSave": {"source.organizeImports": true}
+}

@@ -1,0 +1,239 @@
+version: '3.9'
+
+networks:
+  postgres:
+    name: postgres
+    ipam:
+      driver: default
+      config:
+        - subnet: ${DOCKER_BACKEND_POSTGRESQL_NETWORK}
+          gateway: ${DOCKER_BACKEND_POSTGRESQL_GATEWAY}
+  monitoring:
+    name: monitoring
+    driver: bridge
+
+services:
+  izarmicro:
+    build: ./
+    image: generic_script:latest
+    command: python3 check_shop.py IzarMicro
+
+    container_name: izarmicro
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+
+  neobyte:
+
+    image: generic_script:latest
+    command: python3 check_shop.py Neobyte
+
+    container_name: neobyte
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+
+  aussar:
+
+    image: generic_script:latest
+    command: python3 check_shop.py Aussar
+
+    container_name: aussar
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
+  coolmod:
+
+    image: generic_script:latest
+    command: python3 check_shop.py Coolmod
+
+    container_name: coolmod
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
+  casemod:
+
+    image: generic_script:latest
+    command: python3 check_shop.py Casemod
+
+    container_name: casemod
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
+  ldlc:
+
+    image: generic_script:latest
+    command: python3 check_shop.py LDLC
+
+    container_name: ldlc
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
+  speedler:
+
+    image: generic_script:latest
+    command: python3 check_shop.py Speedler
+
+    container_name: speedler
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
+  versusgamers:
+
+    image: generic_script:latest
+    command: python3 check_shop.py 'Versus Gamers'
+
+    container_name: versusgamers
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    volumes:
+      - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env
+      
