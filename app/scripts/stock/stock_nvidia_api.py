@@ -135,7 +135,7 @@ async def process_data(product, proxy_chosen):
         new_alert = Alert(
             user_id=1390,
             product_id=ProductPartNumber_db.product_id,
-            max_price=math.ceil(1760 / 100) * 100,
+            max_price=math.ceil(price / 100) * 100,
             alert_by_telegram=True,
             alert_by_email=False,
         )
