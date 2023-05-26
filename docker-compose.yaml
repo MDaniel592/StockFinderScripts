@@ -236,4 +236,31 @@ services:
       - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
     env_file:
       - .env
-      
+
+  nvidia:
+
+    image: generic_script:latest
+    command: python3 check_shop.py 'nvidia'
+
+    container_name: nvidia
+
+    networks:
+      - postgres
+      - monitoring
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 256M
+        reservations:
+          cpus: '0.05'
+          memory: 128M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 600s
+    # volumes:
+    #   - ${IMAGES_ROOT_FOLDER}:/usr/src/StockFinderImages:rw
+    env_file:
+      - .env

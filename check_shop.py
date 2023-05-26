@@ -3,6 +3,7 @@ import logging
 import random
 import sys
 
+import app.scripts.stock.stock_nvidia_api as stock_nvidia_api
 from startup_code import check_new_availabilities, check_stock
 
 SLEEP_TIME = 10  # Minutes
@@ -15,6 +16,9 @@ async def main(service_name):
 
     counter = -1
     while True:
+        if service_name == "nvidia":
+            await stock_nvidia_api.main()
+            continue
 
         category = ["GPU", "CPU"]
         if service_name == "Coolmod":
