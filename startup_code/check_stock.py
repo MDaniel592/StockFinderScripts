@@ -16,7 +16,7 @@ import app.scripts.stock.stock_neobyte as stock_neobyte
 import app.scripts.stock.stock_nvidia_api as stock_nvidia_api
 import app.scripts.stock.stock_speedler as stock_speedler
 import app.scripts.stock.stock_vsgamers as stock_vsgamers
-import app.utils.shared_variables as sv
+import app.shared.environment_variables as ev
 
 MODULES_DICT = {
     "Aussar": {"module": stock_aussar, "async": True},
@@ -46,7 +46,6 @@ class BatchingCallback(object):
 
 
 async def start(service_name, logger, category=[]):
-
     t0 = datetime.now()
     logger.info(f"The Scrape of {service_name} for checking the stock will start - category: {category}")
 
@@ -69,13 +68,13 @@ async def start(service_name, logger, category=[]):
         for value in category:
             tag_name += f" {value}"
 
-    client = InfluxDBClient(url=sv.INFLUXDB_URL, token=sv.INFLUXDB_TOKEN, org=sv.INFLUXDB_ORG)
+    client = InfluxDBClient(url=ev.INFLUXDB_URL, token=ev.INFLUXDB_TOKEN, org=ev.INFLUXDB_ORG)
     callback = BatchingCallback(logger=logger)
     write_api = client.write_api(write_options=SYNCHRONOUS, success_callback=callback.success, error_callback=callback.error, retry_callback=callback.retry)
 
     try:
         write_api.write(
-            bucket=sv.INFLUXDB_BUCKET,
+            bucket=ev.INFLUXDB_BUCKET,
             record=[
                 {
                     "measurement": "Stock",

@@ -16,10 +16,10 @@ import app.scripts.product.product_ldlc as ldlc
 import app.scripts.product.product_neobyte as neobyte
 import app.scripts.product.product_speedler as speedler
 import app.scripts.product.product_vsgamers as vsgamers
-import app.utils.error_messages as error_messages
-import app.utils.shared_variables as sv
-import app.utils.valid_messages as valid_messages
-import app.utils.validate_input as validate_input
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.environment_variables as ev
+import app.shared.error_messages as error_messages
+import app.shared.valid_messages as valid_messages
 from app.stockfinder_models.Alert import Alert
 from app.stockfinder_models.Availability import Availability
 from app.stockfinder_models.base import Base, Session, engine
@@ -107,7 +107,7 @@ async def check_availabilities(logger, service_name, channels):
         availabilities = {}
         for availability in availabilities_db:
             availability_dict = availability.__dict__
-            shop_name = validate_input.get_shop_from_url(availability_dict["url"])
+            shop_name = auxiliary_inputs.get_shop_from_url(availability_dict["url"])
             if shop_name == "Unknown":
                 availability.processed = True
             elif shop_name == service_name.lower():
@@ -169,7 +169,6 @@ async def check_availabilities(logger, service_name, channels):
             break
 
         for shop in availabilities:
-
             module = shops_scripts.get(shop, {})
             script = list(module.keys())[0]
             type_func = list(module.values())[0]
@@ -283,13 +282,13 @@ async def start(service_name, logger=None):
 
     actual_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    client = InfluxDBClient(url=sv.INFLUXDB_URL, token=sv.INFLUXDB_TOKEN, org=sv.INFLUXDB_ORG)
+    client = InfluxDBClient(url=ev.INFLUXDB_URL, token=ev.INFLUXDB_TOKEN, org=ev.INFLUXDB_ORG)
     callback = BatchingCallback(logger=logger)
     write_api = client.write_api(write_options=SYNCHRONOUS, success_callback=callback.success, error_callback=callback.error, retry_callback=callback.retry)
 
     try:
         write_api.write(
-            bucket=sv.INFLUXDB_BUCKET,
+            bucket=ev.INFLUXDB_BUCKET,
             record=[
                 {
                     "measurement": "Availability",

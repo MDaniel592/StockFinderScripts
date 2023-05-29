@@ -1,7 +1,6 @@
-[submodule "app/utils"]
-	path = app/utils
-	url = https://github.com/MDaniel592/utils
-    branch = master
 [submodule "app/stockfinder_models"]
 	path = app/stockfinder_models
 	url = https://github.com/MDaniel592/StockFinderModels
+[submodule "app/shared"]
+	path = app/shared
+	url = https://github.com/MDaniel592/stockfinder-shared

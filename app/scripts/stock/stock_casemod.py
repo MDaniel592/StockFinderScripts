@@ -4,17 +4,17 @@ import aiohttp
 import ujson
 from sqlalchemy import and_
 
+import app.common.shops.urls.casemod as casemod_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.casemod as casemod_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import PersonalProxy
 from app.stockfinder_models.Availability import Availability
 from app.stockfinder_models.base import Session
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import PersonalProxy
 
 SHOP = "Casemod"
 HEADERS = {
@@ -80,7 +80,7 @@ async def scrape_data(logger, response, category):
         if not name:
             logger.warning(error.PRODUCT_NAME_NOT_FOUND)
             continue
-        name = validate_input.fix_name(name)
+        name = auxiliary_inputs.fix_name(name)
 
         url = product.get("url", None)
         if not url:
@@ -99,11 +99,9 @@ async def scrape_data(logger, response, category):
 
 
 async def download_data(logger, session, url, category):
-
     currrent_page = True
     update_products = []
     while currrent_page:
-
         response = await requests_handler.get(logger, session, url, max_redirects=30)
         if not response:
             break
@@ -134,7 +132,6 @@ async def main(logger, category_selected=[]):
         conn = aiohttp.TCPConnector(limit=30)
         timeout = aiohttp.ClientTimeout(total=15)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
             for category in casemod_data.urls:
                 if len(category_selected) > 0 and category not in category_selected:
                     continue

@@ -5,16 +5,16 @@ import aiohttp
 import lxml.html
 import ujson
 
+import app.common.shops.urls.vsgamers as vsgamers_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.vsgamers as vsgamers_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import PersonalProxy
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Versus Gamers"
 WEB = "https://www.vsgamers.es"
@@ -40,7 +40,6 @@ async def scrape_data(logger, response, category):
 
     contador = 0
     for element in elements:
-
         try:
             product = element.xpath("(./@data-info)")[0]
             product = ujson.loads(product)
@@ -81,7 +80,7 @@ async def scrape_data(logger, response, category):
         else:
             second_name = None
 
-        category = product_regex.validate_category(category)
+        category = regex_product.validate_category(category)
         if not category:
             continue
 
@@ -115,7 +114,6 @@ async def scrape_data(logger, response, category):
 
 
 async def download_data(logger, session, url, proxy, category):
-
     response = await requests_handler.get(logger, session, url, proxy=proxy)
     if not response:
         return False
@@ -130,11 +128,9 @@ async def download_data(logger, session, url, proxy, category):
 
 
 async def main(logger, category_selected=[]):
-
     conn = aiohttp.TCPConnector(limit=15)
     timeout = aiohttp.ClientTimeout(total=30)
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
         for category in vsgamers_data.urls:
             if len(category_selected) > 0 and category not in category_selected:
                 continue

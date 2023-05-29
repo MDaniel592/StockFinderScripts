@@ -5,15 +5,15 @@ import time
 import aiohttp
 import lxml.html
 
+import app.common.shops.urls.coolmod as coolmod_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.coolmod as coolmod_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import PersonalProxy
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Coolmod"
 WEB = "https://www.coolmod.com"
@@ -71,10 +71,10 @@ async def scrape_data(logger, response, category):
         if category == "Reaco":
             category = name[0].split("-")
             category = category[len(category) - 1]
-            category = validate_input.fix_name_chars(category)
+            category = auxiliary_inputs.fix_name_chars(category)
             refurbished = True
 
-        name = validate_input.fix_name(name[0])
+        name = auxiliary_inputs.fix_name(name[0])
 
         url = product.xpath(".//div[@class='productName']//div//div//a/@href")
         if not url:
@@ -98,7 +98,6 @@ async def main(logger, category_selected=[]):
         conn = aiohttp.TCPConnector(limit=15)
         timeout = aiohttp.ClientTimeout(total=30)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
             for category in coolmod_data.urls:
                 if len(category_selected) > 0 and category not in category_selected:
                     continue

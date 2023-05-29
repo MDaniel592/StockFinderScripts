@@ -8,8 +8,8 @@ import psycopg2.extras
 from psycopg2 import Error
 from psycopg2.extras import execute_values
 
-import app.utils.error_messages as error_messages
-import app.utils.valid_messages as valid_messages
+import app.shared.error_messages as error_messages
+import app.shared.valid_messages as valid_messages
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)

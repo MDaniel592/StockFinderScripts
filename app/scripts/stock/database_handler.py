@@ -1,7 +1,7 @@
 import app.database_functions as database_functions
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.valid_messages as valid
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
 from app.stockfinder_models.Availability import Availability
 from app.stockfinder_models.base import Session
 from app.stockfinder_models.NewAvailabilityChannels import NewAvailabilityChannels
@@ -26,7 +26,6 @@ def process_data(logger, update_products):
 
 
 def add_product(logger, shop_data, product, is_product=False, add_product=False, http_session=None, process_flag=True):
-
     code = product["code"]
     stock = product["stock"]
     price = product["price"]
@@ -42,7 +41,6 @@ def add_product(logger, shop_data, product, is_product=False, add_product=False,
         return True, product_tuple
 
     elif not db_products_data.get(code, False):
-        
         url = product.get("url", None)
         url = url[:-1] if url[len(url) - 1] == "/" else url
 
@@ -62,14 +60,14 @@ def add_product(logger, shop_data, product, is_product=False, add_product=False,
         }
 
         logger.info(error.product_not_in_DB(availability))
-        result = product_regex.validate_data(availability, is_product=is_product)
+        result = regex_product.validate_data(availability, is_product=is_product)
         if not result:
             return False, None
 
         msg = "la disponibilidad"
         result = False
         if process_flag == True and part_number:
-            result = product_regex.process_product(availability, shop_name, 0, add_product=add_product)
+            result = regex_product.process_product(availability, shop_name, 0, add_product=add_product)
 
         if not result or process_flag == False or not part_number:
             session = Session()

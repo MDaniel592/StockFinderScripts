@@ -3,7 +3,6 @@ import datetime
 import json
 import logging
 import math
-import random
 import re
 import time
 import typing
@@ -15,10 +14,11 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 from sqlalchemy import and_, func
 from urllib3.exceptions import ReadTimeoutError
 
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.shared_variables as sv
-import app.utils.valid_messages as valid
+import app.shared.environment_variables as ev
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
 from app.stockfinder_models.Alert import Alert
 from app.stockfinder_models.Availability import Availability
 from app.stockfinder_models.base import Base, Session, engine
@@ -33,7 +33,6 @@ from app.stockfinder_models.Shop import Shop
 from app.stockfinder_models.Spec import Spec
 from app.stockfinder_models.TelegramChannel import TelegramChannel
 from app.stockfinder_models.User import User
-from app.utils.aux_functions import parse_number
 
 SERVICE_NAME = "Nvidia"
 
@@ -85,7 +84,6 @@ class BatchingCallback(object):
 
 
 async def process_data(product, proxy_chosen):
-
     price = product.get("price", None)
     active = product.get("is_active", None)
     part_number = product.get("fe_sku", None)
@@ -119,7 +117,7 @@ async def process_data(product, proxy_chosen):
         logger.warning(f"Producto no registrado: {product} \n {new_product}")
 
         # Registrar nuevo producto
-        result = product_regex.process_product(new_product, "NVIDIA", 0)
+        result = regex_product.process_product(new_product, "NVIDIA", 0)
         if result == 0:
             logger.warning(f"No se ha registrado el producto")
             session.close()
@@ -145,17 +143,17 @@ async def process_data(product, proxy_chosen):
         return
 
     logger.info(valid.nvidia_custom_msg(new_product, f"Se han recogido los datos - Proxy {proxy_chosen}"))
-    availability_db = (
-        session.query(Availability).filter(and_(Availability.product_id == ProductPartNumber_db.product_id, Availability.shop_id == NVIDIA_SHOP_ID)).first()
-    )
+    availability_db = session.query(Availability).filter(and_(Availability.product_id == ProductPartNumber_db.product_id)).first()
     if not availability_db:
         logger.warning(error.product_not_in_DB(new_product))
         session.close()
         return
 
     logger.info(valid.nvidia_custom_msg(new_product, "Se actualiza la DB"))
-    availability_db.stock = active
-    availability_db.price = price
+    data = {"url": url, "stock": active, "price": price}
+    availability_db = (
+        session.query(Availability).filter(and_(Availability.product_id == ProductPartNumber_db.product_id)).update(data, synchronize_session=False)
+    )
     session.commit()
     session.close()
 
@@ -202,13 +200,13 @@ async def main():
     logger.info(f"The Scrape of {SERVICE_NAME} has finished - elapsed_time: {elapsed_time} ms")
 
     actual_time = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-    client = InfluxDBClient(url=sv.INFLUXDB_URL, token=sv.INFLUXDB_TOKEN, org=sv.INFLUXDB_ORG)
+    client = InfluxDBClient(url=ev.INFLUXDB_URL, token=ev.INFLUXDB_TOKEN, org=ev.INFLUXDB_ORG)
     callback = BatchingCallback()
     write_api = client.write_api(write_options=SYNCHRONOUS, success_callback=callback.success, error_callback=callback.error, retry_callback=callback.retry)
 
     try:
         write_api.write(
-            bucket=sv.INFLUXDB_BUCKET,
+            bucket=ev.INFLUXDB_BUCKET,
             record=[
                 {
                     "measurement": "Stock",

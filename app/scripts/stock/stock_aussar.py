@@ -3,14 +3,14 @@ import asyncio
 import aiohttp
 import ujson
 
+import app.common.shops.urls.aussar as aussar_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.aussar as aussar_data
-import app.utils.valid_messages as valid
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import IMAGE_BASE_DIR, KubernetesProxyList, PersonalProxy
+import app.shared.error_messages as error
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList, PersonalProxy
 
 SHOP = "Aussar"
 HEADERS = {
@@ -62,7 +62,6 @@ async def scrape_data(logger, response, category, http_session):
 
 
 async def main(logger, category_selected=[]):
-
     url_dict = aussar_data.urls
     proxy_counter = 0
     try:

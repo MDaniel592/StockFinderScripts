@@ -1,18 +1,13 @@
-import asyncio
-import logging
-import random
-import re
-
 import aiohttp
 import lxml.html
 import ujson
 
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.requests_handler as requests_handler
-import app.utils.valid_messages as valid
-from app.utils.aux_functions import download_save_images, parse_number
-from app.utils.shared_variables import IMAGE_BASE_DIR, PersonalProxy
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import download_save_images, parse_number
+from app.shared.environment_variables import IMAGE_BASE_DIR, PersonalProxy
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -25,7 +20,6 @@ IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/{SHOP.lower()}"
 
 
 async def process_product(logger, session, product):
-
     url = product.get("url", None)
     code = int(product.get("sku", None))
     name = product.get("name", None)
@@ -50,11 +44,11 @@ async def process_product(logger, session, product):
         "manufacturer": manufacturer,
     }
 
-    category = product_regex.validate_category(category)
+    category = regex_product.validate_category(category)
     if not category:
-        category = product_regex.validate_category(name, short=False)
+        category = regex_product.validate_category(name, short=False)
     if not category:
-        category = product_regex.validate_category(url, short=False)
+        category = regex_product.validate_category(url, short=False)
         product["error_message"] = error.CATEGORY_NOT_FOUND
         product["error"] = True
         return product
@@ -68,9 +62,9 @@ async def process_product(logger, session, product):
         return product
 
     if category == "CPU Cooler" or category == "Chassis":
-        result = product_regex.process_product(product, SHOP, 0, add_product=False)
+        result = regex_product.process_product(product, SHOP, 0, add_product=False)
     else:
-        result = product_regex.process_product(product, SHOP, 0)
+        result = regex_product.process_product(product, SHOP, 0)
 
     if not result:
         product["error_message"] = error.PRODUCT_NOT_ADDED

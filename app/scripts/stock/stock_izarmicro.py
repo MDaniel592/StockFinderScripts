@@ -6,14 +6,14 @@ import time
 import aiohttp
 import lxml.html
 
+import app.common.shops.urls.izarmicro as izarmicro_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.izarmicro as izarmicro_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
-from app.utils.aux_functions import parse_number
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
 
 SHOP = "IzarMicro"
 USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_20_77) AppleWebKit/531.71.18 (KHTML, like Gecko) Chrome/55.1.6997.1625 Safari/532.00 Edge/36.04460"
@@ -62,7 +62,7 @@ async def scrape_data(logger, response, category):
         except:
             logger.warning(f"NO price")
             continue
-        price = validate_input.fix_name(price)
+        price = auxiliary_inputs.fix_name(price)
         price = parse_number(float(price))
 
         stock = product.xpath(f"(.//button[@class='compra2'])/text()")
@@ -79,7 +79,7 @@ async def scrape_data(logger, response, category):
                 logger.warning(error.PRODUCT_NAME_NOT_FOUND)
                 continue
 
-        name = validate_input.fix_name(name[0])
+        name = auxiliary_inputs.fix_name(name[0])
 
         second_name = product.xpath(f"(.//div[@class='plist_img2'])//span[@class='desport']/text()")
         if second_name:
@@ -127,7 +127,6 @@ async def main(logger, category_selected=[]):
             conn = aiohttp.TCPConnector(limit=15)
             timeout = aiohttp.ClientTimeout(total=30)
             async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
                 if len(category_selected) > 0 and category not in category_selected:
                     continue
                 elif (category == "GPU" or category == "CPU") and len(category_selected) == 0:

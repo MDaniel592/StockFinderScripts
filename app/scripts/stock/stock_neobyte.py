@@ -5,16 +5,16 @@ import time
 import aiohttp
 import ujson
 
+import app.common.shops.urls.neobyte as neobyte_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.neobyte as neobyte_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import PersonalProxy
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Neobyte"
 WEB = "https://www.neobyte.es"
@@ -39,7 +39,6 @@ async def scrape_data(logger, response, category):
     update_products = []
 
     for element in elements:
-
         code = int(element.get("id_product", None))
         if not code:
             logger.warning(f"Sin code {code}")
@@ -63,9 +62,9 @@ async def scrape_data(logger, response, category):
             logger.warning(error.PRODUCT_NAME_NOT_FOUND)
             continue
 
-        category = product_regex.validate_category(category)
+        category = regex_product.validate_category(category)
         if not category:
-            category = product_regex.validate_category(name, short=False)
+            category = regex_product.validate_category(name, short=False)
             if not category:
                 continue
 
@@ -87,7 +86,6 @@ async def main(logger, category_selected=[]):
         conn = aiohttp.TCPConnector(limit=15)
         timeout = aiohttp.ClientTimeout(total=45)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
             for category in neobyte_data.urls:
                 if len(category_selected) > 0 and category not in category_selected:
                     continue

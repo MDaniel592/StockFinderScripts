@@ -5,13 +5,13 @@ import aiohttp
 import lxml.html
 import ujson
 
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.regex.aussar as aussar_aux_functions
-import app.utils.valid_messages as valid
-from app.utils.aux_functions import download_save_images, parse_number
-from app.utils.shared_variables import IMAGE_BASE_DIR, KubernetesProxyList
+import app.common.shops.regex.aussar as aussar_aux_functions
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import download_save_images, parse_number
+from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -25,7 +25,6 @@ IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/{SHOP.lower()}"
 
 
 async def process_product(logger, session, product, response):
-
     code = product.get("code", 0)
     url = product.get("url", None)
     name = product.get("name", None)
@@ -50,7 +49,7 @@ async def process_product(logger, session, product, response):
     }
     logger.info(f"medium_image: {medium_image} - large_images: {large_images}")
     logger.info(product)
-    category = product_regex.validate_category(category)
+    category = regex_product.validate_category(category)
     if not category:
         product["error_message"] = error.CATEGORY_NOT_FOUND
         product["error"] = True
@@ -84,7 +83,7 @@ async def process_product(logger, session, product, response):
     # if not images:
     #     pass
 
-    result = product_regex.process_product(product, SHOP, 0)
+    result = regex_product.process_product(product, SHOP, 0)
     if not result:
         product["error_message"] = error.PRODUCT_NOT_ADDED
         product["error"] = True

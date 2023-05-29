@@ -7,12 +7,12 @@ import aiohttp
 import lxml.html
 import ujson
 
-import app.utils.error_messages as error
-import app.utils.product_regex as product_regex
-import app.utils.requests_handler as requests_handler
-import app.utils.valid_messages as valid
-from app.utils.aux_functions import download_save_images, parse_number
-from app.utils.shared_variables import IMAGE_BASE_DIR, KubernetesProxyList
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.regex.product as regex_product
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import download_save_images, parse_number
+from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -96,7 +96,7 @@ async def process_response(session, response, url):
     if large_images:
         images["large"] = large_images
 
-    category = product_regex.validate_category(category)
+    category = regex_product.validate_category(category)
     if not category:
         product["error_message"] = error.CATEGORY_NOT_FOUND
         product["error"] = True
@@ -104,9 +104,9 @@ async def process_response(session, response, url):
     product["category"] = category
 
     if category == "CPU Cooler" or category == "Chassis":
-        result = product_regex.process_product(product, SHOP, 0, add_product=False)
+        result = regex_product.process_product(product, SHOP, 0, add_product=False)
     else:
-        result = product_regex.process_product(product, SHOP, 0)
+        result = regex_product.process_product(product, SHOP, 0)
 
     if not result:
         product["error_message"] = error.PRODUCT_NOT_ADDED

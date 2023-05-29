@@ -8,15 +8,15 @@ import lxml.html
 import ujson
 import unidecode
 
+import app.common.shops.urls.ldlc as ldlc_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.utils.error_messages as error
-import app.utils.requests_handler as requests_handler
-import app.utils.shops.urls.ldlc as ldlc_data
-import app.utils.valid_messages as valid
-import app.utils.validate_input as validate_input
-from app.utils.aux_functions import parse_number
-from app.utils.shared_variables import KubernetesProxyList
+import app.shared.auxiliary.inputs as auxiliary_inputs
+import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
+import app.shared.valid_messages as valid
+from app.shared.auxiliary.functions import parse_number
+from app.shared.environment_variables import KubernetesProxyList
 
 SHOP = "LDLC"
 WEB = "https://www.ldlc.com"
@@ -44,7 +44,6 @@ DATA = "filter%5BsearchText%5D=&sorting=Ventas&filter%5Bsort%5D="
 
 
 async def scrape_data(logger, response, url, category):
-
     listing = response.get("listing", None)
 
     try:
@@ -92,7 +91,7 @@ async def scrape_data(logger, response, url, category):
         if not name:
             logger.warning(error.PRODUCT_NAME_NOT_FOUND)
             continue
-        name = validate_input.fix_name(name[0])
+        name = auxiliary_inputs.fix_name(name[0])
 
         description = product.xpath(".//div[@class='pdt-desc']//p/text()")
         description = description[0] if description else None
@@ -115,14 +114,12 @@ async def scrape_data(logger, response, url, category):
 
 
 async def main(logger, category_selected=[]):
-
     url_dict = ldlc_data.urls
     proxy_counter = 0
     try:
         conn = aiohttp.TCPConnector(limit=15)
         timeout = aiohttp.ClientTimeout(total=30)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
-
             for category in url_dict:
                 if len(category_selected) > 0 and category not in category_selected:
                     continue
