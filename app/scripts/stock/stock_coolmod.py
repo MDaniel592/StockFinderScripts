@@ -44,6 +44,13 @@ async def scrape_data(logger, response, category):
     )
 
     products = response.xpath("//div[contains(@class,'productInfo')]")
+    next_page = response.xpath("//div[contains(@class,'infiniteloadercontainer')]//button")
+    next_page = next_page[len(next_page)-1].xpath("./@data-page")
+    try:
+        next_page = int(next_page[0])
+    except:
+        return [], None
+
     update_products = []
 
     for product in products:
@@ -90,7 +97,7 @@ async def scrape_data(logger, response, category):
         update_products.append(product_tuple)
         continue
 
-    return update_products
+    return update_products, next_page
 
 
 async def main(logger, category_selected=[]):
@@ -105,20 +112,32 @@ async def main(logger, category_selected=[]):
                     continue
 
                 url = coolmod_data.urls[category]
-                response = await requests_handler.get(logger, session, url, proxy=PersonalProxy)
-                if not response:
-                    continue
+                current_page = 1
+                update_products = []
+                while current_page:
 
-                try:
-                    response = lxml.html.fromstring(response)
-                except:
-                    logger.error(error.parse_html(url))
-                    continue
+                    response = await requests_handler.get(logger, session, url, proxy=PersonalProxy)
+                    if not response:
+                        continue
 
-                update_products = await scrape_data(logger, response, category)
-                database_handler.process_data(logger, update_products)
+                    try:
+                        response = lxml.html.fromstring(response)
+                    except:
+                        logger.error(error.parse_html(url))
+                        continue
 
-                wait_time = random.randint(500, 3000) / 1000
+                    products, next_page = await scrape_data(logger, response, category)
+                    logger.info(valid.actual_total_pages(current_page, next_page, url))
+                    
+
+                    if not next_page or current_page == next_page:
+                        break
+                    url = url.replace(f"pagina={current_page}", f"pagina={next_page}")
+                    current_page += 1
+                    update_products.append(products)
+                    database_handler.process_data(logger, products)
+
+                wait_time = random.randint(1000, 3000) / 1000
                 time.sleep(wait_time)
 
     except asyncio.exceptions.TimeoutError:
