@@ -12,5 +12,5 @@ RUN python3 -m pip install -r requirements.txt --no-cache-dir
 COPY . /usr/src/app/
 
 # set environment variables
-ENV HOST_NAME vortex
+ENV HOST_NAME Docker
 ENV PYTHONPATH /usr/src/app
