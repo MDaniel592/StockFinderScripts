@@ -49,7 +49,7 @@ async def scrape_data(logger, response, category):
     try:
         next_page = int(next_page[0])
     except:
-        return [], None
+        next_page = None
 
     update_products = []
 
@@ -129,13 +129,13 @@ async def main(logger, category_selected=[]):
                     products, next_page = await scrape_data(logger, response, category)
                     logger.info(valid.actual_total_pages(current_page, next_page, url))
                     
-
-                    if not next_page or current_page == next_page:
-                        break
                     url = url.replace(f"pagina={current_page}", f"pagina={next_page}")
                     current_page += 1
                     update_products.append(products)
                     database_handler.process_data(logger, products)
+
+                    if not next_page or current_page == next_page:
+                        break
 
                 wait_time = random.randint(1000, 3000) / 1000
                 time.sleep(wait_time)
