@@ -6,11 +6,12 @@ import ujson
 import app.common.shops.urls.aussar as aussar_data
 import app.database_functions as database_functions
 import app.scripts.stock.database_handler as database_handler
-import app.shared.error_messages as error
 import app.shared.auxiliary.requests_handler as requests_handler
+import app.shared.error_messages as error
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList, PersonalProxy
+from app.shared.environment_variables import IMAGE_BASE_DIR
+                                              
 
 SHOP = "Aussar"
 HEADERS = {
@@ -63,7 +64,6 @@ async def scrape_data(logger, response, category, http_session):
 
 async def main(logger, category_selected=[]):
     url_dict = aussar_data.urls
-    proxy_counter = 0
     try:
         conn = aiohttp.TCPConnector(limit=15)
         timeout = aiohttp.ClientTimeout(total=30)
@@ -80,7 +80,7 @@ async def main(logger, category_selected=[]):
                 while current_page:
                     HEADERS["Referer"] = f"https://www.aussar.es/tarjetas-graficas/?page={current_page}"
 
-                    response = await requests_handler.get(logger, session, url, proxy=KubernetesProxyList[proxy_counter])
+                    response = await requests_handler.get(logger, session, url)
                     if not response:
                         break
 
@@ -91,11 +91,7 @@ async def main(logger, category_selected=[]):
                         break
 
                     products_list, current_page, total_page = await scrape_data(logger, response, category, session)
-                    logger.info(valid.actual_total_pages(current_page, total_page, url, KubernetesProxyList[proxy_counter]))
-
-                    proxy_counter += 1
-                    if proxy_counter == len(KubernetesProxyList):
-                        proxy_counter = 0
+                    logger.info(valid.actual_total_pages(current_page, total_page, url))
 
                     if products_list:
                         update_products += products_list

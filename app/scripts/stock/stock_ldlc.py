@@ -16,7 +16,6 @@ import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import KubernetesProxyList
 
 SHOP = "LDLC"
 WEB = "https://www.ldlc.com"
@@ -135,7 +134,7 @@ async def main(logger, category_selected=[]):
                     while current_page:
                         HEADERS["Refer"] = f"{url}"
 
-                        response = await requests_handler.post(logger, session, url, data=DATA, headers=HEADERS, proxy=KubernetesProxyList[proxy_counter])
+                        response = await requests_handler.post(logger, session, url, data=DATA, headers=HEADERS)
                         if not response:
                             continue
 
@@ -146,13 +145,10 @@ async def main(logger, category_selected=[]):
                             continue
 
                         products_list, current_page, next_page = await scrape_data(logger, response, url, category)
-                        logger.info(valid.actual_next_page(current_page, next_page, url, KubernetesProxyList[proxy_counter]))
+                        logger.info(valid.actual_next_page(current_page, next_page, url))
 
-                        proxy_counter += 1
-                        if proxy_counter == len(KubernetesProxyList):
-                            proxy_counter = 0
-                            wait_time = random.randint(5000, 15000) / 1000
-                            time.sleep(wait_time)
+                        wait_time = random.randint(3000, 8000) / 1000
+                        time.sleep(wait_time)
 
                         if products_list:
                             update_products += products_list

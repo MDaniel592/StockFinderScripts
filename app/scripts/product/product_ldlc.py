@@ -4,16 +4,15 @@ import re
 import time
 
 import aiohttp
-import lxml.html
-import ujson
-
 import app.common.shops.regex.ldlc as ldlc_aux_functions
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
+import lxml.html
+import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
-from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList
+from app.shared.environment_variables import IMAGE_BASE_DIR
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -25,7 +24,7 @@ SHOP = "LDLC"
 IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/{SHOP.lower()}"
 
 
-async def process_product(session, product, response):
+async def process_product(logger, session, product, response, only_download_images):
     url = product.get("url", None)
 
     code = re.findall("PB\d+", url)
@@ -67,12 +66,15 @@ async def process_product(session, product, response):
     product = new_product
 
     image_size = "large"
-    images = await download_save_images(session, images, part_number, code, image_size, IMAGE_SHOP_DIR)
+    images = await download_save_images(logger, session, images, part_number, code, image_size, IMAGE_SHOP_DIR)
     if not images:
         product["error_message"] = error.PRODUCT_IMG_NOT_FOUND
         product["error"] = True
         return product
 
+    if only_download_images:
+        return product
+    
     result = regex_product.process_product(product, SHOP, 0)
     if not result:
         product["error_message"] = error.PRODUCT_NOT_ADDED
@@ -81,10 +83,10 @@ async def process_product(session, product, response):
     return product
 
 
-async def download_data(logger, session, url, proxy):
+async def download_data(logger, session, url, only_download_images, proxy=None):
     logger.info(f"Consultando url: {url}")
 
-    response = await requests_handler.get(logger, session, url, proxy)
+    response = await requests_handler.get(logger, session, url)
     if not response:
         return False, error.GET_NOT_COMPLETED
 
@@ -113,10 +115,10 @@ async def download_data(logger, session, url, proxy):
     product_data["url"] = url
     product_data["category"] = category
 
-    return await process_product(session, product_data, response), True
+    return await process_product(logger, session, product_data, response, only_download_images), True
 
 
-async def main(logger, shop_data):
+async def main(logger, shop_data, only_download_images=False):
     if not shop_data:
         return False
 
@@ -126,7 +128,7 @@ async def main(logger, shop_data):
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for entry in range(len(shop_data)):
                 url = shop_data[entry]["url"]
-                product_data, response = await download_data(logger, session, url, proxy=random.choice(KubernetesProxyList))
+                product_data, response = await download_data(logger, session, url, only_download_images)
                 if product_data == False:
                     shop_data[entry]["result"] = {"error": True, "error_message": response}
                     continue

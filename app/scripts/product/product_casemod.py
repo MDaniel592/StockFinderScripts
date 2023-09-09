@@ -4,15 +4,14 @@ import random
 import re
 
 import aiohttp
-import lxml.html
-import ujson
-
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
+import lxml.html
+import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
-from app.shared.environment_variables import IMAGE_BASE_DIR, KubernetesProxyList
+from app.shared.environment_variables import IMAGE_BASE_DIR
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -26,7 +25,7 @@ SHOP = "Casemod"
 IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/{SHOP.lower()}"
 
 
-async def process_response(session, response, url):
+async def process_response(logger, session, response, url, only_download_images):
     product = {"url": url}
     product_data = response.xpath("//div[@id='product-details']/@data-product")
     if not product_data:
@@ -69,33 +68,24 @@ async def process_response(session, response, url):
     product["category"] = category
 
     images = product_data.get("images", [])
-    medium_images = []
-    large_images = []
+    image_sizes = {"medium": [], "large": []}
+
     for image in images:
-        medium_img = image.get("medium", {}).get("url", None)
-        if medium_img:
-            medium_images.append(medium_img)
+        for size in image_sizes.keys():
+            img_url = image.get(size, {}).get("url", None)
+            if img_url:
+                image_sizes[size].append(img_url)
 
-        large_img = image.get("large", {}).get("url", None)
-        if large_img:
-            large_images.append(large_img)
-
-    #
     images = {}
-    image_size = "medium"
-    medium_images = await download_save_images(session, medium_images, part_number, code, image_size, IMAGE_SHOP_DIR)
-    if medium_images == "Ya exiten":
-        pass
-    if medium_images:
-        images["medium"] = medium_images
 
-    image_size = "large"
-    large_images = await download_save_images(session, large_images, part_number, code, image_size, IMAGE_SHOP_DIR, check=False)
-    if large_images == "Ya exiten":
-        pass
-    if large_images:
-        images["large"] = large_images
+    for size, img_list in image_sizes.items():
+        img_list = await download_save_images(logger, session, img_list, part_number, code, size, IMAGE_SHOP_DIR)
+        if img_list:
+            images[size] = img_list
 
+    if only_download_images:
+        return product
+    
     category = regex_product.validate_category(category)
     if not category:
         product["error_message"] = error.CATEGORY_NOT_FOUND
@@ -115,10 +105,10 @@ async def process_response(session, response, url):
     return product
 
 
-async def download_data(logger, session, url, proxy):
+async def download_data(logger, session, url, proxy=None):
     logger.info(f"Consultando url: {url}")
 
-    response = await requests_handler.get(logger, session, url, proxy)
+    response = await requests_handler.get(logger, session, url)
     if not response:
         return False, error.GET_NOT_COMPLETED
 
@@ -131,7 +121,7 @@ async def download_data(logger, session, url, proxy):
     return True, response
 
 
-async def main(logger, shop_data):
+async def main(logger, shop_data, only_download_images=False):
     if not shop_data:
         return False
 
@@ -141,12 +131,12 @@ async def main(logger, shop_data):
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for entry in range(len(shop_data)):
                 url = shop_data[entry]["url"]
-                result, response = await download_data(logger, session, url, proxy=random.choice(KubernetesProxyList))
+                result, response = await download_data(logger, session, url)
                 if not result:
                     shop_data[entry]["result"] = {"error": True, "error_message": response}
                     continue
 
-                shop_data[entry]["result"] = await process_response(session, response, url)
+                shop_data[entry]["result"] = await process_response(logger, session, response, url, only_download_images)
 
     except asyncio.exceptions.TimeoutError:
         logger.error(error.TIMEOUT_ERROR)

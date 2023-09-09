@@ -13,7 +13,6 @@ import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Coolmod"
 WEB = "https://www.coolmod.com"
@@ -116,7 +115,7 @@ async def main(logger, category_selected=[]):
                 update_products = []
                 while current_page:
 
-                    response = await requests_handler.get(logger, session, url, proxy=PersonalProxy)
+                    response = await requests_handler.get(logger, session, url)
                     if not response:
                         continue
 
@@ -130,15 +129,15 @@ async def main(logger, category_selected=[]):
                     logger.info(valid.actual_total_pages(current_page, next_page, url))
                     
                     url = url.replace(f"pagina={current_page}", f"pagina={next_page}")
-                    current_page += 1
                     update_products.append(products)
                     database_handler.process_data(logger, products)
 
                     if not next_page or current_page == next_page:
                         break
+                    current_page += 1
 
-                wait_time = random.randint(1000, 3000) / 1000
-                time.sleep(wait_time)
+                    wait_time = random.randint(200, 500) / 1000
+                    time.sleep(wait_time)
 
     except asyncio.exceptions.TimeoutError:
         logger.error(error.TIMEOUT_ERROR)

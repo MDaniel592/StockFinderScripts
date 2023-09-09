@@ -14,7 +14,6 @@ import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Neobyte"
 WEB = "https://www.neobyte.es"
@@ -95,7 +94,7 @@ async def main(logger, category_selected=[]):
                 url = neobyte_data.urls[category]
                 HEADERS["Referer"] = url
 
-                response = await requests_handler.get(logger, session, url, proxy=PersonalProxy)
+                response = await requests_handler.get(logger, session, url)
                 if not response:
                     continue
 

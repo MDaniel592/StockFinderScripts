@@ -1,15 +1,14 @@
 import re
 
 import aiohttp
-import lxml.html
-import ujson
-
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
+import lxml.html
+import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
-from app.shared.environment_variables import IMAGE_BASE_DIR, PersonalProxy
+from app.shared.environment_variables import IMAGE_BASE_DIR
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -21,7 +20,7 @@ SHOP = "Neobyte"
 IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/{SHOP.lower()}"
 
 
-async def process_product(logger, session, product):
+async def process_response(logger, session, product, only_download_images):
     url = product.get("url", None)
     code_str = re.findall("\d+.html", url, re.IGNORECASE)
     if code_str:
@@ -64,10 +63,13 @@ async def process_product(logger, session, product):
     product["category"] = category
 
     image_size = "large"
-    images = await download_save_images(session, images, part_number, code, image_size, IMAGE_SHOP_DIR, proxy=True)
+    images = await download_save_images(logger, session, images, part_number, code, image_size, IMAGE_SHOP_DIR)
     if not images:
         product["error_message"] = error.PRODUCT_IMG_NOT_FOUND
         product["error"] = True
+        return product
+
+    if only_download_images:
         return product
 
     if category == "CPU Cooler" or category == "Chassis":
@@ -82,9 +84,9 @@ async def process_product(logger, session, product):
     return product
 
 
-async def download_data(logger, session, url, proxy):
+async def download_data(logger, session, url, proxy=None):
     logger.info(f"Consultando url: {url}")
-    response = await requests_handler.get(logger, session, url, proxy)
+    response = await requests_handler.get(logger, session, url)
     if not response:
         return False, error.GET_NOT_COMPLETED
 
@@ -108,7 +110,7 @@ async def download_data(logger, session, url, proxy):
     return product_data, response
 
 
-async def main(logger, shop_data):
+async def main(logger, shop_data, only_download_images=False):
     if not shop_data:
         return False
 
@@ -117,11 +119,11 @@ async def main(logger, shop_data):
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
         for entry in range(len(shop_data)):
             url = shop_data[entry]["url"]
-            product_data, response = await download_data(logger, session, url, proxy=PersonalProxy)
+            product_data, response = await download_data(logger, session, url)
             if product_data == False:
                 shop_data[entry]["result"] = {"error": True, "error_message": response}
                 continue
 
-            shop_data[entry]["result"] = await process_product(logger, session, product_data)
+            shop_data[entry]["result"] = await process_response(logger, session, product_data, only_download_images)
 
     return shop_data

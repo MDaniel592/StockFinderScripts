@@ -12,7 +12,6 @@ import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import PersonalProxy
 from app.stockfinder_models.Availability import Availability
 from app.stockfinder_models.base import Session
 

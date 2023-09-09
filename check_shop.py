@@ -4,7 +4,7 @@ import random
 import sys
 
 import app.scripts.stock.stock_nvidia_api as stock_nvidia_api
-from startup_code import check_new_availabilities, check_stock
+from startup_code import check_images, check_new_availabilities, check_stock
 
 SLEEP_TIME = 10  # Minutes
 
@@ -16,6 +16,7 @@ async def main(service_name):
 
     counter = -1
     while True:
+        logger.info(f"service_name {service_name} - counter {counter}")
         if service_name == "nvidia":
             await stock_nvidia_api.main()
             continue
@@ -23,6 +24,10 @@ async def main(service_name):
         category = ["GPU", "CPU"]
         if service_name == "Coolmod":
             category = ["GPU", "CPU", "Reaco"]
+
+        if counter == -1 or counter == 10:
+            await check_images.start(service_name=service_name, logger=logger)
+            await asyncio.sleep(random.randint(10, 30))
 
         await check_stock.start(service_name=service_name, logger=logger, category=category)
         await asyncio.sleep(random.randint(10, 30))

@@ -1,13 +1,12 @@
 import aiohttp
-import lxml.html
-import ujson
-
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
+import lxml.html
+import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
-from app.shared.environment_variables import IMAGE_BASE_DIR, PersonalProxy
+from app.shared.environment_variables import IMAGE_BASE_DIR
 
 HEADERS = {
     "Accept-Encoding": "gzip, deflate",
@@ -19,7 +18,7 @@ SHOP = "Versus Gamers"
 IMAGE_SHOP_DIR = f"{IMAGE_BASE_DIR}/vsgamers"
 
 
-async def process_product(logger, session, product):
+async def process_response(logger, session, product, only_download_images):
     url = product.get("url", None)
     code = product.get("id", None)
     name = product.get("name", None)
@@ -53,20 +52,24 @@ async def process_product(logger, session, product):
         return product
     product["category"] = category
 
-    image_size = "medium"
-    images = await download_save_images(session, medium_images, part_number, code, image_size, IMAGE_SHOP_DIR, proxy=True, personal=True)
-    if not images:
+    images = {}
+    image_sizes = {"medium": medium_images, "large": large_images}
+
+    for size, image_list in image_sizes.items():
+        if not image_list:
+            continue
+        image = await download_save_images(logger, session, image_list, part_number, code, size, IMAGE_SHOP_DIR, check=False)
+        if image:
+            images[size] = image
+
+    if not images["medium"] and not images["large"]:
         product["error_message"] = error.PRODUCT_IMG_NOT_FOUND
         product["error"] = True
         return product
 
-    image_size = "large"
-    images = await download_save_images(session, large_images, part_number, code, image_size, IMAGE_SHOP_DIR, proxy=True, personal=True, check=False)
-    if not images:
-        product["error_message"] = error.PRODUCT_IMG_NOT_FOUND
-        product["error"] = True
+    if only_download_images:
         return product
-
+    
     if category == "CPU Cooler" or category == "Chassis":
         result = regex_product.process_product(product, SHOP, 0, add_product=False)
     else:
@@ -79,9 +82,9 @@ async def process_product(logger, session, product):
     return product
 
 
-async def download_data(logger, session, url, proxy):
+async def download_data(logger, session, url, proxy=None):
     logger.info(f"Consultando url: {url}")
-    response = await requests_handler.get(logger, session, url, proxy)
+    response = await requests_handler.get(logger, session, url)
     if not response:
         return False, error.GET_NOT_COMPLETED
 
@@ -105,7 +108,7 @@ async def download_data(logger, session, url, proxy):
     return product_data, response
 
 
-async def main(logger, shop_data):
+async def main(logger, shop_data, only_download_images = False):
     if not shop_data:
         return False
 
@@ -114,11 +117,11 @@ async def main(logger, shop_data):
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
         for entry in range(len(shop_data)):
             url = shop_data[entry]["url"]
-            product_data, response = await download_data(logger, session, url, proxy=PersonalProxy)
+            product_data, response = await download_data(logger, session, url)
             if product_data == False:
                 shop_data[entry]["result"] = {"error": True, "error_message": response}
                 continue
 
-            shop_data[entry]["result"] = await process_product(logger, session, product_data)
+            shop_data[entry]["result"] = await process_response(logger, session, product_data, only_download_images)
 
     return shop_data

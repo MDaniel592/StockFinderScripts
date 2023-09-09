@@ -46,22 +46,18 @@ API_URLS = [
 
 
 HEADERS = {
-    "Host": "api.store.nvidia.com",
-    "Origin": "https://store.nvidia.com",
-    "Refer": "https://store.nvidia.com",
-    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:101.0) Gecko/20100101 Firefox/101.0",
-    "Accept": "*/*",
-    "Accept-Language": "es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3",
-    "Accept-Encoding": "gzip, deflate, br",
-    "DNT": "1",
-    "Connection": "close",
-    "Upgrade-Insecure-Requests": "1",
-    "Sec-Fetch-Dest": "document",
-    "Sec-Fetch-Mode": "navigate",
-    "Sec-Fetch-Site": "cross-site",
-    "Sec-GPC": "1",
-    "Cache-Control": "max-age=0",
-    "TE": "trailers",
+    "authority": "api.store.nvidia.com",
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+    "Accept-Encoding": "gzip,deflate,br",
+    "accept-language": "en-US,en;q=0.8",
+    "cache-control": "max-age=0",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "sec-gpc": "1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
 }
 
 
@@ -160,7 +156,7 @@ async def process_data(product, proxy_chosen):
 
 async def scrape_api(url):
     try:
-        timeout = aiohttp.ClientTimeout(total=4)
+        timeout = aiohttp.ClientTimeout(total=7)
         async with aiohttp.ClientSession(timeout=timeout, headers=HEADERS) as session:
             proxy_chosen = None
             async with session.get(url, proxy=proxy_chosen) as response:
@@ -193,7 +189,8 @@ async def main():
     t0 = datetime.datetime.now()
     logger.info(f"The Scrape of {SERVICE_NAME} for checking the stock will start")
 
-    await asyncio.gather(*[scrape_api(url) for url in API_URLS])
+    for url in API_URLS:
+        await scrape_api(url)
 
     t1 = datetime.datetime.now()
     elapsed_time = float(round((t1 - t0).total_seconds() * 1000))
@@ -219,7 +216,7 @@ async def main():
     except ReadTimeoutError:
         pass
 
-    await asyncio.sleep(15)
+    await asyncio.sleep(90)
 
 
 def sleep():

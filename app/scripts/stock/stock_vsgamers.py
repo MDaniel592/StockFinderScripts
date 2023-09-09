@@ -14,7 +14,6 @@ import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
 from app.shared.auxiliary.functions import parse_number
-from app.shared.environment_variables import PersonalProxy
 
 SHOP = "Versus Gamers"
 WEB = "https://www.vsgamers.es"
@@ -113,8 +112,8 @@ async def scrape_data(logger, response, category):
     return update_products
 
 
-async def download_data(logger, session, url, proxy, category):
-    response = await requests_handler.get(logger, session, url, proxy=proxy)
+async def download_data(logger, session, url, category, proxy=None):
+    response = await requests_handler.get(logger, session, url)
     if not response:
         return False
 
@@ -138,7 +137,7 @@ async def main(logger, category_selected=[]):
                 continue
 
             url = vsgamers_data.urls[category]
-            update_products = await download_data(logger, session, url, PersonalProxy, category)
+            update_products = await download_data(logger, session, url, category)
             logger.info(valid.url_successful(url))
 
             database_handler.process_data(logger, update_products)
