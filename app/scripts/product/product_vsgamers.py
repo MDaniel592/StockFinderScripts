@@ -1,10 +1,11 @@
 import aiohttp
+import lxml.html
+import ujson
+
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
-import lxml.html
-import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
 from app.shared.environment_variables import IMAGE_BASE_DIR
 
@@ -58,7 +59,7 @@ async def process_response(logger, session, product, only_download_images):
     for size, image_list in image_sizes.items():
         if not image_list:
             continue
-        image = await download_save_images(logger, session, image_list, part_number, code, size, IMAGE_SHOP_DIR, check=False)
+        image = await download_save_images(logger, session, image_list, part_number, code, size, IMAGE_SHOP_DIR)
         if image:
             images[size] = image
 

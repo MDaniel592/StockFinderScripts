@@ -4,13 +4,14 @@ import re
 import time
 
 import aiohttp
+import lxml.html
+import ujson
+
 import app.common.shops.regex.ldlc as ldlc_aux_functions
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
-import lxml.html
-import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
 from app.shared.environment_variables import IMAGE_BASE_DIR
 
@@ -93,25 +94,22 @@ async def download_data(logger, session, url, only_download_images, proxy=None):
     try:
         response = lxml.html.fromstring(response)
     except:
+        logger.error(error.HTML_PARSE_ERROR)
         return False, error.HTML_PARSE_ERROR
 
     product_data = response.xpath("(//script[@type='application/ld+json'])[1]/text()")
-    data_category = response.cssselect("html>head>script:nth-of-type(3)")
+    data_category = response.xpath("(//div[@class='breadcrumb'])//ul//li[4]//a/text()")
     if not product_data:
+        logger.error(error.PRODUCT_DATA_NOT_FOUND)
         return False, error.PRODUCT_DATA_NOT_FOUND
 
     try:
-        data_category = str(data_category[0].text_content())
-        data_category = data_category.split("'ecommerce': ")[1]
-        data_category = data_category.split("});")[0]
-        data_category = data_category.replace("'", '"')
-        #
+        category = str(data_category[0])
         product_data = ujson.loads(product_data[0])
-        data_category = ujson.loads(data_category)
     except:
+        logger.error(error.JSON_ERROR)
         return False, error.JSON_ERROR
 
-    category = data_category.get("detail", {}).get("products", [{}])[0].get("category", None)
     product_data["url"] = url
     product_data["category"] = category
 
