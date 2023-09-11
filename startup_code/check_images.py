@@ -54,12 +54,13 @@ SHOPS_ID = {
     'neobyte': 7,
     'casemod': 10,
     'izarmicro': 4,
-    'versus gamers': 12,
+    'vsgamers': 12,
     'speedler': 17,
 }  
+SHOPS_ABSOLUTE_PATH = "/usr/src/StockFinderImages/shops"
 
 def get_availabilities_with_empty_folders(service_name, logger):
-    ABSOLUTE_PATH = "/usr/src/StockFinderImages/shops"
+    service_name = service_name.replace("versus gamers", "vsgamers")
     service_name = service_name.lower()
     shop_id = SHOPS_ID.get(service_name, False)
     if not shop_id:
@@ -67,9 +68,9 @@ def get_availabilities_with_empty_folders(service_name, logger):
     
     availability_list = []
     session = Session()
-    part_numbers_folders = os.listdir(f"{ABSOLUTE_PATH}/{service_name}")
+    part_numbers_folders = os.listdir(f"{SHOPS_ABSOLUTE_PATH}/{service_name}")
     for folder in part_numbers_folders:
-        images = os.listdir(f"{ABSOLUTE_PATH}/{service_name}/{folder}")
+        images = os.listdir(f"{SHOPS_ABSOLUTE_PATH}/{service_name}/{folder}")
         if len(images) > 0:
             continue
         
@@ -97,7 +98,7 @@ def get_availabilities_with_empty_folders(service_name, logger):
     return availability_list
 
 def get_availabilities_without_images(service_name, logger):
-
+    service_name = service_name.replace("versus gamers", "vsgamers")
     shop_id = SHOPS_ID.get(service_name.lower(), False)
     if not shop_id:
         return None
@@ -112,9 +113,17 @@ def get_availabilities_without_images(service_name, logger):
     )
 
     availability_list = []
+    folders = os.listdir(f"{SHOPS_ABSOLUTE_PATH}/{service_name}")
     for availability in db_availabilities_with_no_images:
-        availability_list.append({"url": availability.url})
+        dbPartNumbers = availability.product.product_part_numbers
 
+        for index in dbPartNumbers:
+            if index.part_number not in folders:
+                continue
+            availability_list.append({"url": availability.url})
+            break
+        continue
+    
     session.close()
 
     logger.info(f"The shop {service_name} has a total of {len(availability_list)} availabilities without images")
