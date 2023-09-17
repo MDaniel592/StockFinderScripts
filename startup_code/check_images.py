@@ -98,8 +98,8 @@ def get_availabilities_with_empty_folders(service_name, logger):
     return availability_list
 
 def get_availabilities_without_images(service_name, logger):
-    service_name = service_name.replace("versus gamers", "vsgamers")
-    shop_id = SHOPS_ID.get(service_name.lower(), False)
+    service_name = service_name.lower().replace("versus gamers", "vsgamers")
+    shop_id = SHOPS_ID.get(service_name, False)
     if not shop_id:
         return None
 
@@ -162,23 +162,23 @@ async def start(service_name, logger):
         logger.propagate = False
 
     t0 = datetime.now()
-    logger.info(f"The Scrape of {service_name} for checking the availability will start")
+    logger.info(f"The Scrape of {service_name} for checking the images will start")
 
     availability_list = get_availabilities_with_empty_folders(service_name, logger)
     if not availability_list:
-        logger.warning(f"Sin directorios vacíos {availability_list}")
+        logger.info(f"Sin directorios vacíos {availability_list}")
     else:
         await download_images_for_each_shop(service_name, logger, availability_list)
 
     availability_list = get_availabilities_without_images(service_name, logger)
     if not availability_list:
-        logger.warning(f"No hay disponibilidades sin imagenes {availability_list}")
+        logger.info(f"No hay disponibilidades sin imagenes {availability_list}")
     else:
         await download_images_for_each_shop(service_name, logger, availability_list)
 
     t1 = datetime.now()
     elapsed_time = float(round((t1 - t0).total_seconds() * 1000))
-    logger.info(f"The Scrape of {service_name} has finished - elapsed_time: {elapsed_time} ms")
+    logger.info(f"The Scrape of {service_name} for checking the images has finished - elapsed_time: {elapsed_time} ms")
 
     actual_time = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 

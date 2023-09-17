@@ -20,10 +20,8 @@ async def main(service_name):
         if service_name == "nvidia":
             await stock_nvidia_api.main()
             continue
-
-        category = ["GPU", "CPU"]
-        if service_name == "Coolmod":
-            category = ["GPU", "CPU", "Reaco"]
+        
+        category = ["GPU", "CPU", "Reaco"] if service_name == "Coolmod" else ["GPU", "CPU"]
 
         if counter == -1 or counter == 10:
             await check_images.start(service_name=service_name, logger=logger)

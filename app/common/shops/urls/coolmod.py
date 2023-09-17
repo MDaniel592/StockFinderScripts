@@ -8,4 +8,5 @@ urls = {
     "Storage": "https://www.coolmod.com/componentes-pc-discos-duros/?pagina=1",
     "Chassis": "https://www.coolmod.com/componentes-pc-torres-cajas/?pagina=1",
     "CPU Cooler": "https://www.coolmod.com/componentes-pc-disipadores-ventiladores/?pagina=1",
+    "Monitor":  "https://www.coolmod.com/perifericos-monitores/?pagina=1",
 }
