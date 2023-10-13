@@ -63,7 +63,7 @@ async def process_response(logger, session, product, only_download_images):
         if image:
             images[size] = image
 
-    if not images["medium"] and not images["large"]:
+    if not images.get("medium", None) and not images.get("medium", None):
         product["error_message"] = error.PRODUCT_IMG_NOT_FOUND
         product["error"] = True
         return product
@@ -95,7 +95,10 @@ async def download_data(logger, session, url, proxy=None):
         return False, error.HTML_PARSE_ERROR
 
     product_data = response.xpath("//div[@class='vs-product']/@data-info")
-    images = response.xpath("//div[@class='thumbnails']//div[@class='wrapper']//ul//li//a/@href")
+    images = response.xpath("//div[@class='vs-product-header-gallery']//div[@class='thumbnails']//div[@class='wrapper']//ul//li//a/@href")
+    if len(images) == 0:
+        images = response.xpath("//div[@class='vs-product-header-gallery']//div[@class='images']//ul//li//a/@href")
+
     if not product_data:
         return False, error.ARTICLES_NOT_FOUND
 
