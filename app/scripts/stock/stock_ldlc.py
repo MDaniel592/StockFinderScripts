@@ -114,9 +114,8 @@ async def scrape_data(logger, response, url, category):
 
 async def main(logger, category_selected=[]):
     url_dict = ldlc_data.urls
-    proxy_counter = 0
     try:
-        conn = aiohttp.TCPConnector(limit=15)
+        conn = aiohttp.TCPConnector(limit=60)
         timeout = aiohttp.ClientTimeout(total=30)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for category in url_dict:
@@ -147,7 +146,7 @@ async def main(logger, category_selected=[]):
                         products_list, current_page, next_page = await scrape_data(logger, response, url, category)
                         logger.info(valid.actual_next_page(current_page, next_page, url))
 
-                        wait_time = random.randint(3000, 8000) / 1000
+                        wait_time = random.randint(3000, 5000) / 1000
                         time.sleep(wait_time)
 
                         if products_list:

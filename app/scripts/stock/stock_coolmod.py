@@ -101,7 +101,7 @@ async def scrape_data(logger, response, category):
 
 async def main(logger, category_selected=[]):
     try:
-        conn = aiohttp.TCPConnector(limit=15)
+        conn = aiohttp.TCPConnector(limit=60)
         timeout = aiohttp.ClientTimeout(total=30)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for category in coolmod_data.urls:

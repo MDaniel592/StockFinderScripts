@@ -29,13 +29,14 @@ REMOTE_PORT = os.environ.get("POSGRESQL_REMOTE_PORT")
 
 
 def sql_connection():
+    connection = psycopg2.connect(user=LOCAL_USER, password=LOCAL_USER_PASSWORD, host=LOCAL_URL, port=LOCAL_PORT, database=DATABASE)
 
-    if HOSTNAME == "Docker":
-        # Localhost / Docker
-        connection = psycopg2.connect(user=LOCAL_USER, password=LOCAL_USER_PASSWORD, host=LOCAL_URL, port=LOCAL_PORT, database=DATABASE)
-    else:
-        # Remote Host
-        connection = psycopg2.connect(user=REMOTE_USER, password=REMOTE_USER_PASSWORD, host=REMOTE_URL, port=REMOTE_PORT, database=DATABASE)
+    # if HOSTNAME == "Docker":
+    #     # Localhost / Docker
+    #     connection = psycopg2.connect(user=LOCAL_USER, password=LOCAL_USER_PASSWORD, host=LOCAL_URL, port=LOCAL_PORT, database=DATABASE)
+    # else:
+    #     # Remote Host
+    #     connection = psycopg2.connect(user=REMOTE_USER, password=REMOTE_USER_PASSWORD, host=REMOTE_URL, port=REMOTE_PORT, database=DATABASE)
 
     return connection
 
