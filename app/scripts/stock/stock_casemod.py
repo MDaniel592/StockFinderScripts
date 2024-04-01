@@ -128,7 +128,7 @@ async def download_data(logger, session, url, category):
 
 async def main(logger, category_selected=[]):
     try:
-        conn = aiohttp.TCPConnector(limit=30)
+        conn = aiohttp.TCPConnector(limit=60)
         timeout = aiohttp.ClientTimeout(total=15)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for category in casemod_data.urls:

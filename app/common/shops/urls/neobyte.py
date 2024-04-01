@@ -7,4 +7,5 @@ urls = {
     "Storage": "https://www.neobyte.es/discos-duros-110?order=product.position.asc&resultsPerPage=9999999&from-xhr",
     "Chassis": "https://www.neobyte.es/cajas-de-ordenador-112?order=product.position.asc&resultsPerPage=9999999&from-xhr",
     "CPU Cooler": "https://www.neobyte.es/ventilacion-109?order=product.position.asc&resultsPerPage=9999999&from-xhr",
+    "Monitor": "https://www.neobyte.es/monitores-169?order=product.position.asc&resultsPerPage=9999999&from-xhr",
 }

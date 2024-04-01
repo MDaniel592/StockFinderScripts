@@ -7,4 +7,5 @@ urls = {
     "Storage": "https://www.aussar.es/almacenamiento/?page=1&from-xhr",
     "Chassis": "https://www.aussar.es/cajas/?page=1&from-xhr",
     "CPU Cooler": "https://www.aussar.es/refrigeracion/?page=1&from-xhr",
+    "Monitor": "https://www.aussar.es/monitores/?page=1&from-xhr",
 }

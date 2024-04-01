@@ -7,4 +7,5 @@ urls = {
     "Storage": {"url": "https://www.speedler.es/es/c/discos-duros-ssd-nas/753", "Content-Length": "789"},
     "Chassis": {"url": "https://www.speedler.es/es/c/cajas/730", "Content-Length": "789"},
     "CPU Cooler": {"url": "https://www.speedler.es/es/c/refrigeracion-ventilacion/734", "Content-Length": "789"},
+    "Monitor": {"url": "https://www.speedler.es/es/c/monitores/806", "Content-Length": "789"},
 }

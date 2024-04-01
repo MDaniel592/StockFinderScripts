@@ -50,4 +50,10 @@ urls = {
         {"url": "https://www.izarmicro.net/componentes/cajas/semitorre/sec-590"},
         {"url": "https://www.izarmicro.net/componentes/cajas/minitorre/sec-591"},
     ],
+    "Monitor": [
+        {"url": "https://www.izarmicro.net/perifericos/monitores/monitor-16-24-pulgadas/sec-553"},
+        {"url": "https://www.izarmicro.net/perifericos/monitores/monitor-25-29-pulgadas/sec-552"},
+        {"url": "https://www.izarmicro.net/perifericos/monitores/monitor-30-65-pulgadas/sec-689"},
+    ],
+
 }

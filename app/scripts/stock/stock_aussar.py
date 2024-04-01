@@ -65,7 +65,7 @@ async def scrape_data(logger, response, category, http_session):
 async def main(logger, category_selected=[]):
     url_dict = aussar_data.urls
     try:
-        conn = aiohttp.TCPConnector(limit=15)
+        conn = aiohttp.TCPConnector(limit=60)
         timeout = aiohttp.ClientTimeout(total=30)
         async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
             for category in url_dict:

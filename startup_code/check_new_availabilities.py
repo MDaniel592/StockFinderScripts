@@ -28,7 +28,8 @@ from app.stockfinder_models.Category import Category
 from app.stockfinder_models.Manufacturer import Manufacturer
 from app.stockfinder_models.Message import Message
 from app.stockfinder_models.NewAvailability import NewAvailability
-from app.stockfinder_models.NewAvailabilityChannels import NewAvailabilityChannels
+from app.stockfinder_models.NewAvailabilityChannels import \
+    NewAvailabilityChannels
 from app.stockfinder_models.Product import Product
 from app.stockfinder_models.ProductPartNumber import ProductPartNumber
 from app.stockfinder_models.ProductSpec import ProductSpec
@@ -190,31 +191,24 @@ async def check_availabilities(logger, service_name, channels):
                     counter = int(product["counter"]) + 1
                     new_avai_chan_id = int(product["_id"])
                     #
-                    error_flag = result.get("error", False)
-                    if error_flag == False:
-                        session.query(NewAvailabilityChannels).filter(NewAvailabilityChannels._id == new_avai_chan_id).update(
-                            {"counter": counter, "processed": True},
-                            synchronize_session=False,
-                        )
-                        session.commit()
-                        continue
-
-                    table_update = {
+                    row_data = {
                         "counter": counter,
                         "name": result.get("name", None),
                         "code": result.get("code", None),
                         "category": result.get("category", None),
                         "part_number": result.get("part_number", None),
                         "manufacturer": result.get("manufacturer", None),
-                        "error_message": result.get("error_message", None),
                     }
+                    #
+                    error_flag = result.get("error", False)
+                    if error_flag == False:
+                        row_data["processed"] = True
 
-                    if result.get("error_message", None) == error_messages.SPECS_NOT_FOUND or counter == 3:
-                        table_update["invalid"] = True
+                    elif result.get("error_message", None) == error_messages.SPECS_NOT_FOUND or counter == 3:
+                        row_data["invalid"] = True
+                        row_data["error_message"] = result.get("error_message", None)
 
-                    session.query(NewAvailabilityChannels).filter(NewAvailabilityChannels._id == new_avai_chan_id).update(
-                        table_update, synchronize_session=False
-                    )
+                    session.query(NewAvailabilityChannels).filter(NewAvailabilityChannels._id == new_avai_chan_id).update(row_data, synchronize_session=False)
                     session.commit()
                     continue
 

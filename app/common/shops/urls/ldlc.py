@@ -12,4 +12,6 @@ urls = {
     ],
     "Chassis": ["https://www.ldlc.com/v4/es-es/full_listing/informatica/piezas-de-informatica/caja-de-pc/4678/page?sort=4"],
     "CPU Cooler": ["https://www.ldlc.com/v4/es-es/full_listing/informatica/piezas-de-informatica/ventilador-procesador/4712/page?sort=4"],
+    "Monitor": ["https://www.ldlc.com/v4/es-es/full_listing/informatica/perifericos-pc/pantalla-pc/4623/page?sort=4"],
+
 }

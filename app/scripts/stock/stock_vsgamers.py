@@ -127,7 +127,7 @@ async def download_data(logger, session, url, category, proxy=None):
 
 
 async def main(logger, category_selected=[]):
-    conn = aiohttp.TCPConnector(limit=15)
+    conn = aiohttp.TCPConnector(limit=60)
     timeout = aiohttp.ClientTimeout(total=30)
     async with aiohttp.ClientSession(connector=conn, timeout=timeout, headers=HEADERS) as session:
         for category in vsgamers_data.urls:

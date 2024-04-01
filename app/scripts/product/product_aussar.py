@@ -2,13 +2,14 @@ import asyncio
 import random
 
 import aiohttp
+import lxml.html
+import ujson
+
 import app.common.shops.regex.aussar as aussar_aux_functions
 import app.shared.auxiliary.requests_handler as requests_handler
 import app.shared.error_messages as error
 import app.shared.regex.product as regex_product
 import app.shared.valid_messages as valid
-import lxml.html
-import ujson
 from app.shared.auxiliary.functions import download_save_images, parse_number
 from app.shared.environment_variables import IMAGE_BASE_DIR
 
@@ -95,7 +96,7 @@ async def download_data(logger, session, url, proxy=None):
         return False, error.HTML_PARSE_ERROR
 
     product_data_code = response.cssselect("#product-details")
-    product_data = response.cssselect("html>head>script:nth-of-type(4)")
+    product_data = response.cssselect("html>head>script:nth-of-type(7)")
     if not product_data:
         return False, error.PRODUCT_DATA_NOT_FOUND
 
